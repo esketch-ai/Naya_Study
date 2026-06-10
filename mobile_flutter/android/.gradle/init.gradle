@@ -1,0 +1,9 @@
+// This file is used to initialize the Android project for Flutter
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply from: "${flutter.sdk}/packages/flutter_tools/gradle/app_plugin_loader.gradle"
