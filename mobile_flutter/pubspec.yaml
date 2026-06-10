@@ -1,7 +1,7 @@
 name: naya_flutter
-description: Naya~ English Learning App - Flutter Implementation
+description: Naya~ English Learning App - Flutter Implementation with Wearable Integration
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,7 +12,7 @@ dependencies:
   
   # Database
   sqflite: ^2.3.0
-  drift: ^2.14.0
+  path_provider: ^2.1.0
   
   # BLE Wearable Connection
   flutter_blue_plus: ^1.8.0

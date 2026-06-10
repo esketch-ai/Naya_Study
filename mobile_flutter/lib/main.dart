@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:sqflite/sqflite.dart';
-import 'dart:io' as io;
+import 'screens/home_screen.dart';
+import 'screens/learn_screen.dart';
+import 'screens/profile_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Set preferred orientations
@@ -12,18 +12,7 @@ void main() {
     DeviceOrientation.landscapeLeft,
   ]);
   
-  // Request necessary permissions
-  _requestPermissions();
-}
-
-Future<void> _requestPermissions() async {
-  if (io.Platform.isAndroid) {
-    // Request SYSTEM_ALERT_WINDOW permission for overlay
-    // This needs to be declared in AndroidManifest.xml
-  } else if (io.Platform.isIOS) {
-    // Request notification and background fetch permissions
-    // These are handled via Info.plist
-  }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -37,237 +26,231 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.emerald),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+        ),
       ),
-      home: const ZombieOverlayScreen(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class ZombieOverlayScreen extends StatefulWidget {
-  const ZombieOverlayScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<ZombieOverlayScreen> createState() => _ZombieOverlayScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _ZombieOverlayScreenState extends State<ZombieOverlayScreen> {
-  int _currentIndex = 0;
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isConnected = false;
   
-  // Learning cards for display
-  final List<Map<String, dynamic>> _learningCards = [
-    {
-      'expression': 'Take it easy',
-      'meaning': '진정해, 서두르지 마',
-      'example1': 'Take it easy! We still have plenty of time.',
-      'example2': '진정해! 우리 아직 시간 많이 남아있어.'
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
-    _initializeDatabase();
+    _initBle();
   }
-
-  Future<void> _initializeDatabase() async {
-    // Initialize SQLite database with SQLCipher
+  
+  Future<void> _initBle() async {
     try {
-      await openDatabase(
-        'naya.db',
-        version: (1, 0),
-        onCreate: (db, version) async {
-          // Create tables as defined in DATABASE_SCHEMA.md
-          await db.execute('''
-            CREATE TABLE user_profiles (
-              user_id TEXT PRIMARY KEY,
-              user_name TEXT NOT NULL,
-              wakeup_time TEXT DEFAULT '07:00',
-              sleep_time TEXT DEFAULT '23:00',
-              preferred_voice TEXT DEFAULT 'lover',
-              stress_threshold INTEGER DEFAULT 75
-            )
-          ''');
-        },
-      );
+      // Initialize BLE connection
+      await BleService().start();
+      
+      setState(() {
+        _isConnected = true;
+      });
     } catch (e) {
-      print('Database initialization error: $e');
+      print('BLE Initialization Error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          // Learning Overlay Screen
-          _buildLearningOverlay(),
-          
-          // Quiz Submit Screen
-          const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Evening Quiz', style: TextStyle(fontSize: 24)),
-                SizedBox(height: 20),
-                Text('Submit your answers here'),
-              ],
-            ),
+      appBar: AppBar(
+        title: const Text('Naya~'),
+        actions: [
+          IconButton(
+            icon: Icon(_isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled),
+            onPressed: () => _toggleBleConnection(),
+            tooltip: 'Connect/Disconnect Wearable',
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLearningOverlay() {
-    return Stack(
-      children: [
-        // Background gradient
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
-              ],
-            ),
-          ),
-        ),
-        
-        // Learning card content
-        Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '🦴 Zombie Card',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 32),
-                
-                // Learning card widget
-                if (_learningCards.isNotEmpty)
-                  _buildLearningCard(_learningCards[0]),
-                
-                SizedBox(height: 48),
-                
-                // Action buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Navigate to quiz screen
-                        setState(() => _currentIndex = 1);
-                      },
-                      icon: const Icon(Icons.check_circle),
-                      label: const Text('Start Quiz'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        
-        // Close button (disabled during Teenager Locker mode)
-        Positioned(
-          top: 16,
-          right: 16,
-          child: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              // Implement annoyance cap logic here
-              // Disable after 2 consecutive closes within 4 hours
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLearningCard(Map<String, dynamic> card) {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              card['expression'] as String,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            Icon(
+              _isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
+              size: 80,
+              color: _isConnected ? Colors.green : Colors.grey,
             ),
-            SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Icon(Icons.ear, size: 32, color: Colors.grey[600]),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '[${card['pronunciation'] ?? ''}]',
-                    style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+            const SizedBox(height: 16),
+            Text(
+              _isConnected ? 'Connected to Naya Wearable' : 'Connect your wearable device',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isConnected ? 'Heart Rate Monitor Active' : 'Tap button to connect',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isConnected ? () => Navigator.pushNamed(context, '/learn') : null,
+        icon: const Icon(Icons.school),
+        label: const Text('Learn'),
+      ),
+    );
+  }
+  
+  Future<void> _toggleBleConnection() async {
+    if (_isConnected) {
+      await BleService.disconnectFromDevice();
+      setState(() => _isConnected = false);
+    } else {
+      await _initBle();
+    }
+  }
+}
+
+class LearnScreen extends StatefulWidget {
+  const LearnScreen({super.key});
+
+  @override
+  State<LearnScreen> createState() => _LearnScreenState();
+}
+
+class _LearnScreenState extends State<LearnScreen> {
+  final LearningService _learning = LearningService();
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Learn')),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _learning.getZombieCards(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: const Text('No cards available'));
+          }
+          
+          final cards = snapshot.data!;
+          
+          return ListView.builder(
+            itemCount: cards.length,
+            itemBuilder: (context, index) {
+              final card = cards[index];
+              
+              return Card(
+                margin: const EdgeInsets.all(8),
+                child: ListTile(
+                  title: Text(card['expression'] ?? ''),
+                  subtitle: Text(card['meaning'] ?? ''),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.check_circle_outline),
+                    onPressed: () => _submitAnswer(context, card),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 12),
-            
-            Text(
-              card['meaning'] as String,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 24),
-            
-            // Example sentences
-            _buildExampleCard('EN', card['example1'] as String?),
-            _buildExampleCard('KO', card['example2'] as String?),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+  
+  Future<void> _submitAnswer(BuildContext context, Map<String, dynamic> card) async {
+    // TODO: Implement answer submission with SM-2 algorithm
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reviewing...')),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person, size: 64),
+            const SizedBox(height: 16),
+            const Text('User Profile'),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildExampleCard(String lang, String? text) {
-    if (text == null || text.isEmpty) return const SizedBox.shrink();
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Text(lang, style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(width: 8),
-          Expanded(child: Text(text)),
-        ],
-      ),
-    );
+// Services
+class BleService {
+  static final BleService _instance = BleService._();
+  
+  factory BleService() => _instance;
+  
+  bool _isConnected = false;
+  
+  Future<void> start() async {
+    print('Starting BLE controller...');
+    // Implementation using flutter_blue_plus
   }
+  
+  static Future<void> disconnectFromDevice() async {
+    print('Disconnecting from BLE device');
+  }
+}
+
+class LearningService {
+  final String _baseUrl = 'https://api.naya.app/api/v1';
+  
+  Future<List<Map<String, dynamic>>> getZombieCards() async {
+    try {
+      // Fetch zombie cards from backend API
+      return []; // Placeholder - implement with http package
+    } catch (e) {
+      print('Error fetching zombie cards: $e');
+      return [];
+    }
+  }
+  
+  Future<Map<String, dynamic>> submitQuiz(String cardId, int answerIndex) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/learning/quiz/submit'),
+        headers: {'Authorization': 'Bearer YOUR_TOKEN'},
+        body: jsonEncode({
+          'cardId': cardId,
+          'answerIndex': answerIndex,
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      print('Error submitting quiz: $e');
+    }
+    
+    return {'success': false};
+  }
+}
+
+// Models
+class CardModel {
+  final String id;
+  final String expression;
+  final String meaning;
+  
+  CardModel({required this.id, required this.expression, required this.meaning});
 }
