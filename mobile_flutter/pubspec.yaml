@@ -1,0 +1,60 @@
+name: naya_flutter
+description: Naya~ English Learning App - Flutter Implementation
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Database
+  sqflite: ^2.3.0
+  drift: ^2.14.0
+  
+  # BLE Wearable Connection
+  flutter_blue_plus: ^1.8.0
+  
+  # Audio & Haptics
+  audioplayers: ^5.2.0
+  vibration: ^2.0.0
+  
+  # Sensors
+  sensors_plus: ^6.0.0
+  geolocator: ^11.0.0
+  geofence_plus: ^3.0.0
+  
+  # Background Tasks
+  workmanager: ^0.5.2
+  flutter_local_notifications: ^17.0.0
+  
+  # Security & Storage
+  flutter_secure_storage: ^9.0.0
+  local_auth: ^2.1.4
+  
+  # Network
+  http: ^1.1.0
+  dio: ^5.4.0
+  connectivity_plus: ^5.0.0
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # UI Components
+  flutter_slidable: ^3.0.0
+  cached_network_image: ^3.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Assets
+  assets:
+    - assets/sounds/
+    - assets/images/

@@ -1,0 +1,23 @@
+{
+  "name": "naya",
+  "version": "1.0.0",
+  "description": "Cross-platform learning platform with Wear OS, Apple Watch, and React Native mobile client",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run mobile\"",
+    "server": "cd server && npm start",
+    "mobile": "npx expo start",
+    "wearable:android": "cd wearable && ./gradlew assembleDebug",
+    "wearable:ios": "cd wearable-watchos && open watchOS\\ App.xcodeproj"
+  },
+  "dependencies": {
+    "@react-native-ble-plx/react-native-ble-plx": "^2.3.0",
+    "sqflite": "^0.0.34",
+    "crypto-js": "^4.1.1",
+    "local-auth": "^1.0.0",
+    "geolocator": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.0.0"
+  }
+}

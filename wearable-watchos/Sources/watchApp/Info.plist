@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identifier -->
+    <key>CFBundleIdentifier</key>
+    <string>com.naya.wearable</string>
+    
+    <!-- App Name -->
+    <key>CFBundleName</key>
+    <string>Naya Wearable</string>
+    
+    <!-- Display Name -->
+    <key>CFBundleDisplayName</key>
+    <string>Naya Watch</string>
+    
+    <!-- Bundle Version -->
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    
+    <!-- Minimum watchOS Deployment Target -->
+    <key>MinimumOSVersion</key>
+    <string>9.0</string>
+    
+    <!-- Required Permissions -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>We need Bluetooth to connect with your Naya wearable device for health monitoring.</string>
+    
+    <!-- Background Modes - Keep alive while app is suspended -->
+    <key UIBackgroundModes </key>
+    <array>
+        <string>bluetooth-central</string>
+    </array>
+    
+    <!-- HealthKit (for HRV data) -->
+    <key>NSHealthShareUsageDescription</key>
+    <string>We access your health data to personalize learning based on your stress levels.</string>
+    
+    <!-- Prevent Auto Sleep during Learning -->
+    <key>UIApplicationSceneSessionLifecycleAllowsAutoSleepWhenInactive</key>
+    <false/>
+    
+</dict>
+</plist>

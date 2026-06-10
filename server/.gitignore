@@ -1,0 +1,6 @@
+node_modules/
+.npm/
+.env
+*.db
+.DS_Store
+.env.example

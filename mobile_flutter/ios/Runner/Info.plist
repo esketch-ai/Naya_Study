@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identifier -->
+    <key>CFBundleIdentifier</key>
+    <string>com.naya.englishlearning</string>
+    
+    <!-- App Name -->
+    <key>CFBundleName</key>
+    <string>Naya~</string>
+    
+    <!-- Display Name -->
+    <key>CFBundleDisplayName</key>
+    <string>Naya~ English Learning</string>
+    
+    <!-- Bundle Version -->
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    
+    <!-- Minimum iOS Deployment Target -->
+    <key>MinimumOSVersion</key>
+    <string>15.0</string>
+    
+    <!-- Required Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to detect study locations and provide personalized learning.</string>
+    
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>We need continuous location access for geofencing features (study lock mode).</string>
+    
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>We need Bluetooth to connect with your smartwatch for health monitoring.</string>
+    
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need microphone access for speech recognition and voice cloning consent verification.</string>
+    
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>fetch</string>
+        <string>location</string>
+    </array>
+    
+    <!-- Live Activities Configuration -->
+    <key>NSSupportsLiveActivities</key>
+    <true/>
+    
+    <!-- Push Notifications -->
+    <key>UIUserNotificationType</key>
+    <array>
+        <string>UIUserNotificationTypeSound</string>
+        <string>UIUserNotificationTypeBadge</string>
+        <string>UIUserNotificationTypeAlert</string>
+    </array>
+    
+    <!-- Background Fetch -->
+    <key>com.apple.developer.background-fetch.minimum-scan-interval</key>
+    <integer>15</integer>
+    
+    <!-- Remote Notifications -->
+    <key>com.apple.developer.user-notifications</key>
+    <true/>
+    
+    <!-- HealthKit (for HRV data) -->
+    <key>NSHealthShareUsageDescription</key>
+    <string>We access your health data to personalize learning based on your stress levels.</string>
+    
+    <!-- Face ID for Secure Enclave Access -->
+    <key>UIRequiresFullScreen</key>
+    <false/>
+    
+    <!-- Prevent Auto Sleep during Learning -->
+    <key>UIApplicationSceneSessionLifecycleAllowsAutoSleepWhenInactive</key>
+    <false/>
+    
+</dict>
+</plist>
