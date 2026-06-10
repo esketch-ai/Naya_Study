@@ -44,6 +44,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final BleService _ble = BleService();
   bool _isConnected = false;
   
   @override
@@ -54,8 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Future<void> _initBle() async {
     try {
-      // Initialize BLE connection
-      await BleService().start();
+      await _ble.start();
       
       setState(() {
         _isConnected = true;
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(_isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled),
-            onPressed: () => _toggleBleConnection(),
+            onPressed: _toggleBleConnection,
             tooltip: 'Connect/Disconnect Wearable',
           ),
         ],
@@ -88,18 +88,35 @@ class _HomeScreenState extends State<HomeScreen> {
               color: _isConnected ? Colors.green : Colors.grey,
             ),
             const SizedBox(height: 16),
+            
+            // Connection status text
             Text(
-              _isConnected ? 'Connected to Naya Wearable' : 'Connect your wearable device',
+              _isConnected 
+                  ? 'Connected to Naya Wearable' 
+                  : 'Connect your wearable device',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+            
             const SizedBox(height: 8),
-            Text(
-              _isConnected ? 'Heart Rate Monitor Active' : 'Tap button to connect',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-            ),
+            
+            // Instructions for disconnected state
+            if (!_isConnected) ...[
+              Text(
+                'Tap button to connect',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _initBle,
+                icon: const Icon(Icons.bluetooth_connected),
+                label: const Text('Connect Device'),
+              ),
+            ],
           ],
         ),
       ),
+      
+      // Floating action button to navigate to Learn screen
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isConnected ? () => Navigator.pushNamed(context, '/learn') : null,
         icon: const Icon(Icons.school),
@@ -110,9 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Future<void> _toggleBleConnection() async {
     if (_isConnected) {
+      // Disconnect from device
       await BleService.disconnectFromDevice();
       setState(() => _isConnected = false);
+      print('Disconnected from BLE device');
     } else {
+      // Reconnect to device
       await _initBle();
     }
   }
@@ -136,7 +156,20 @@ class _LearnScreenState extends State<LearnScreen> {
         future: _learning.getZombieCards(),
         builder: (context, snapshot) {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: const Text('No cards available'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.school_outlined, size: 64),
+                  const SizedBox(height: 16),
+                  Text('No cards available'),
+                  const SizedBox(height: 8),
+                  Text('Connect your wearable device to start learning',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
           }
           
           final cards = snapshot.data!;
@@ -149,7 +182,8 @@ class _LearnScreenState extends State<LearnScreen> {
               return Card(
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  title: Text(card['expression'] ?? ''),
+                  leading: Icon(Icons.school, color: Colors.emerald),
+                  title: Text(card['expression'] ?? 'Loading...'),
                   subtitle: Text(card['meaning'] ?? ''),
                   trailing: IconButton(
                     icon: const Icon(Icons.check_circle_outline),
@@ -165,10 +199,50 @@ class _LearnScreenState extends State<LearnScreen> {
   }
   
   Future<void> _submitAnswer(BuildContext context, Map<String, dynamic> card) async {
-    // TODO: Implement answer submission with SM-2 algorithm
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reviewing...')),
+    // Show confirmation dialog before submitting
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Review Card'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(card['expression'] ?? ''),
+            const SizedBox(height: 8),
+            Text('Meaning: ${card['meaning']}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Submit answer (answerIndex = 0 for correct in this demo)
+              _learning.submitQuiz(card['id'] ?? '', 0);
+              Navigator.pop(context, {'correct': true});
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
     );
+    
+    if (result != null && result['correct'] == true) {
+      // Show success feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Correct! Reviewing...'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Refresh cards after submission
+      Future.delayed(const Duration(seconds: 1), () {
+        setState(() {});
+      });
+    }
   }
 }
 
@@ -193,64 +267,4 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Services
-class BleService {
-  static final BleService _instance = BleService._();
-  
-  factory BleService() => _instance;
-  
-  bool _isConnected = false;
-  
-  Future<void> start() async {
-    print('Starting BLE controller...');
-    // Implementation using flutter_blue_plus
-  }
-  
-  static Future<void> disconnectFromDevice() async {
-    print('Disconnecting from BLE device');
-  }
-}
-
-class LearningService {
-  final String _baseUrl = 'https://api.naya.app/api/v1';
-  
-  Future<List<Map<String, dynamic>>> getZombieCards() async {
-    try {
-      // Fetch zombie cards from backend API
-      return []; // Placeholder - implement with http package
-    } catch (e) {
-      print('Error fetching zombie cards: $e');
-      return [];
-    }
-  }
-  
-  Future<Map<String, dynamic>> submitQuiz(String cardId, int answerIndex) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/learning/quiz/submit'),
-        headers: {'Authorization': 'Bearer YOUR_TOKEN'},
-        body: jsonEncode({
-          'cardId': cardId,
-          'answerIndex': answerIndex,
-        }),
-      );
-      
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-    } catch (e) {
-      print('Error submitting quiz: $e');
-    }
-    
-    return {'success': false};
-  }
-}
-
-// Models
-class CardModel {
-  final String id;
-  final String expression;
-  final String meaning;
-  
-  CardModel({required this.id, required this.expression, required this.meaning});
-}
+// Services (moved to separate files)
